@@ -1,0 +1,75 @@
+!pip install requests
+!pip install openai
+
+import pandas as pd
+
+import requests
+
+# link do open_weather: https://openweathermap.org/
+
+API_KEY = "Colocar sua chave retirada da openweathermap"
+cidades = ["rio de janeiro","são paulo","rio grande do sul","minas gerais","espirito santo"]
+umidades = []
+temperaturas = []
+descricoes = []
+
+for cidade in cidades:
+  link = f"https://api.openweathermap.org/data/2.5/weather?q={cidade}&appid={API_KEY}&lang=pt_br"
+  requisicao = requests.get(link)
+  requisicao_dic = requisicao.json()
+  descricao = requisicao_dic['weather'][0]['description']
+  temperatura = requisicao_dic['main']['temp'] - 273.15
+  umidade = requisicao_dic['main']['humidity']
+  umidades.append(umidade)
+  temperaturas.append(temperatura)
+  descricoes.append(descricao)
+
+df = pd.DataFrame((zip(cidades, descricoes, temperaturas, umidades)), columns = ['cidade', 'Descrição', 'Temperatura (C)', 'umidade'])
+print(df)
+resultado do print[
+              cidade  Descrição  Temperatura (C)  umidade
+0     rio de janeiro      névoa            22.76       82
+1          são paulo      névoa            21.54       82
+2  rio grande do sul  céu limpo            21.12       53
+3       minas gerais    nublado            21.35       74
+4     espirito santo    nublado            26.92       54
+]
+# Documentação Oficial da API OpenAI: https://platform.openai.com/docs/api-reference/introduction
+# Informações sobre o Período Gratuito: https://help.openai.com/en/articles/4936830
+
+# Para gerar uma API Key:
+# 1. Crie uma conta na OpenAI
+# 2. Acesse a seção "API Keys"
+# 3. Clique em "Create API Key"
+# Link direto: https://platform.openai.com/account/api-keys
+
+
+openai_api_key = 'Colocar sua chave API do chatGPT'
+
+import openai
+
+openai.api_key = openai_api_key
+
+def generate_ai_news(df):
+   completion = openai.ChatCompletion.create(model="gpt-4",messages=[
+   {"role": "system","content": "Você é um especialista em analise de clima e tempo."},
+   {"role": "user","content": f"Crie uma mensagem para {df['cidade']} sobre o clima e a temperatura (máximo de 100 caracteres)"}])
+   return completion.choices[0].message.content.strip('\"')
+
+for cidade in cidades:
+  news = generate_ai_news(df)
+  print(news)
+  df['news'].append({
+      "icon": "https://github.com/LucianoFC93/ideal-adventure",
+      "description": news
+   })
+
+def update_user(df):
+  response = requests.put(f"{https://api.openweathermap.org/data/2.5/weather?q={cidade}&appid={API_KEY}&lang=pt_br}", json=df)
+  return True if response.status_code == 200 else False
+
+for cidade in df:
+  success = update_cidade(df)
+  print(f"User {df['cidade']} updated? {success}!")
+
+#como não utilizei a API do santander na parte do load não foi possivel atualizar já que é um site diferente.
